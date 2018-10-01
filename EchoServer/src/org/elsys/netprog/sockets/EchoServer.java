@@ -10,66 +10,64 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EchoServer extends Thread {
-	ServerSocket serverSocket;
-	public ArrayList<Socket> sockets = new ArrayList<Socket>();
-	public ArrayList<PrintWriter> out = new ArrayList<PrintWriter>();
-	public ArrayList<BufferedReader> in = new ArrayList<BufferedReader>();
+	private Socket me;
+	private Socket them;
+	private PrintWriter them_out;
+	private BufferedReader me_in;
 	
-	EchoServer(ServerSocket serverSocket){
-		this.serverSocket = serverSocket;
+	EchoServer(Socket client_me, Socket client_them){
+		this.me = client_me;
+		this.them = client_them;
 		try {
-			out.add(new PrintWriter(sockets.get(0).getOutputStream(), true));
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			out.add(new PrintWriter(sockets.get(1).getOutputStream(), true));
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			in.add(new BufferedReader(new InputStreamReader(sockets.get(0).getInputStream())));
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			in.add(new BufferedReader(new InputStreamReader(sockets.get(1).getInputStream())));
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-	}
-    public void run() {
-    	
-    		
-		try {
-    		
+			this.them_out = new PrintWriter(this.them.getOutputStream(), true);
+			this.me_in = new BufferedReader(
+			        new InputStreamReader(this.me.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	
+		
+	}
+    public void run() {
+    	String input;
+    	try {
+			while ((input = me_in.readLine()) != null) {
+			    them_out.println(input);
+			    if (input.equals("exit"))
+			        break;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	try {
+			this.me.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     }
     
 	public static void main(String[] args) throws IOException {
-		
+		ArrayList<Socket> sockets = new ArrayList<Socket>();
 		ServerSocket serverSocket = null;
 		try {
 			serverSocket = new ServerSocket(10001);
-			EchoServer server = (new EchoServer(serverSocket));
-			ArrayList<PrintWriter> out = new ArrayList<PrintWriter>();
-			ArrayList<BufferedReader> in = new ArrayList<BufferedReader>();
+			
 			while(true) {
-				server.sockets.add(serverSocket.accept());
-    			System.out.println("client connected from " + server.sockets.get(server.sockets.size() - 1).getInetAddress());
-    			if(server.sockets.size() == 2)
+				sockets.add(serverSocket.accept());
+    			System.out.println("client connected from " + sockets.get(sockets.size() - 1).getInetAddress());
+    			if(sockets.size() == 2)
     			{
     				break;
     			}
     		} 
-			    
-			String inputLine;
-			server.start();
-		    
-		    
+
+			EchoServer connection1 = (new EchoServer(sockets.get(0), sockets.get(1)));
+			connection1.start();
+			
+			EchoServer connection2= (new EchoServer(sockets.get(1), sockets.get(0)));
+			connection2.start();
+		    while(true) {}
 		} catch (Throwable t) {
 			System.out.println(t.getMessage());
 		} finally {

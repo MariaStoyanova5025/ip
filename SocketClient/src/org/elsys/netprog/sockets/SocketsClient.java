@@ -14,7 +14,12 @@ public class SocketsClient extends Thread {
 	}
     public void run() {
     	try {
-			System.out.println(in.readLine());
+    		String line;
+    		while ((line = in.readLine()) != null) {
+			    System.out.println(line);
+			    if (line.equals("exit"))
+			        break;
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
