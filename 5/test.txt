@@ -1,0 +1,4 @@
+3 bytes
+1.09 sec
+1606841 hashes
+~1460764 hashes per sec
